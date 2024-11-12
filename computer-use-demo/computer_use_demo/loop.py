@@ -7,6 +7,7 @@ from collections.abc import Callable
 from datetime import datetime
 from enum import StrEnum
 from typing import Any, cast
+import asyncio
 
 import httpx
 from anthropic import (
@@ -33,6 +34,7 @@ from .tools import BashTool, ComputerTool, EditTool, ToolCollection, ToolResult
 
 COMPUTER_USE_BETA_FLAG = "computer-use-2024-10-22"
 PROMPT_CACHING_BETA_FLAG = "prompt-caching-2024-07-31"
+API_RATE_LIMIT_DELAY = 75  # seconds
 
 
 class APIProvider(StrEnum):
@@ -123,7 +125,10 @@ async def sampling_loop(
                 only_n_most_recent_images,
                 min_removal_threshold=image_truncation_threshold,
             )
-
+            
+        # Add rate limit delay before API call
+        await asyncio.sleep(API_RATE_LIMIT_DELAY)
+        
         # Call the API
         # we use raw_response to provide debug information to streamlit. Your
         # implementation may be able call the SDK directly with:
